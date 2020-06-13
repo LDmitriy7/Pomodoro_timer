@@ -1,4 +1,3 @@
 asyncio
 aiogram 
-math
 sqlite3
