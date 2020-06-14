@@ -82,10 +82,10 @@ async def get_stats(msg: types.Message):
 
 # очистка статистики
 @dp.message_handler(lambda msg: msg.text.lower().replace('.', '') == 's2')
-async def get_stats(msg: types.Message):
+async def del_stats(msg: types.Message):
     if msg.text[-1] == '.':
         sleep(10)
-    db.update_one_stat(msg.from_user.id)
+    db.update_stats(msg.from_user.id)
     await msg.answer("Статистика сброшена")
 
 
@@ -209,20 +209,7 @@ async def check(wait_for):
             else:
                 await bot.send_message(user_id, f"Время таймера вышло, начислено {points} мин. отдыха")
 
-
-# проверка необходимости обновления статистики
-async def check_date(wait_for):
-    while True:
-        await asyncio.sleep(wait_for)
-        with open('update_stats.txt', 'r', encoding='utf-8') as f:
-            if TIME() - float(f.readline()) >= 3600 * 24:
-                with open('update_stats.txt', 'w', encoding='utf-8') as f2:
-                    print(TIME(), file=f2)
-                db.update_stats()
-
-
 # запускаем лонг-поллинг
 if __name__ == '__main__':
     dp.loop.create_task(check(1))
-    dp.loop.create_task(check_date(1))
     executor.start_polling(dp, skip_updates=True)
