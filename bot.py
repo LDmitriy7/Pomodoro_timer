@@ -6,6 +6,20 @@ from time import time as TIME, sleep
 from aiogram import Bot, Dispatcher, executor, types
 from SQLighter import SQLighter
 from math import ceil
+from aiogram.dispatcher.webhook import SendMessage
+from aiogram.utils.executor import start_webhook
+
+# webhook settings
+WEBHOOK_HOST = 'https://git.heroku.com'
+WEBHOOK_PATH = '/pomodoro-timer7.git'
+WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
+
+# webserver settings
+WEBAPP_HOST = 'https://git.heroku.com'  # or ip
+WEBAPP_PORT = 3001
+
+
+#----------------------------------------------------------------
 
 # инициализируем бота
 token = os.environ.get('BOT_TOKEN')
@@ -20,6 +34,16 @@ keyboard.row('W', 'R', 'W2', 'R2')
 keyboard.row('T', 'P', 'P2', 'S', 'S2', 'D')
 keyboard.row('/set_timers', '/get_timers')
 
+#-----------------------------------------------------------------
+async def on_startup(dp):
+    await bot.set_webhook(WEBHOOK_URL)
+    # insert code here to run it after start
+
+async def on_shutdown(dp):
+    # Remove webhook (not acceptable in some cases)
+    await bot.delete_webhook()
+
+#-----------------------------------------------------------------
 
 # стартовая инструкция
 @dp.message_handler(commands=['start', 'help'])
@@ -210,6 +234,20 @@ async def check(wait_for):
                 await bot.send_message(user_id, f"Время таймера вышло, начислено {points} мин. отдыха")
 
 # запускаем лонг-поллинг
+# if __name__ == '__main__':
+#     dp.loop.create_task(check(1))
+#     executor.start_polling(dp, skip_updates=True)
+
+# запускаем веб-хук
 if __name__ == '__main__':
     dp.loop.create_task(check(1))
-    executor.start_polling(dp, skip_updates=True)
+    start_webhook(
+        dispatcher=dp,
+        webhook_path=WEBHOOK_PATH,
+        on_startup=on_startup,
+        on_shutdown=on_shutdown,
+        skip_updates=True,
+        host=WEBAPP_HOST,
+        port=WEBAPP_PORT,
+    )
+
