@@ -93,16 +93,6 @@ class SQLighter:
                 if TIME() >= f_time:
                     return user_id, points, mode
 
-    def check_date(self):
-        """Проверка на необходимость обнуления статистики"""
-        with self.connection:
-            result = self.cursor.execute(
-                "SELECT st_time FROM timers_on WHERE f_time = (SELECT MIN(f_time) FROM timers_on)").fetchone()
-            if result:
-                user_id, f_time, points, mode = result
-                if TIME() >= f_time:
-                    return user_id, points, mode
-
     def pause_timer(self, user_id):
         """Приостановка таймера"""
         with self.connection:
@@ -133,12 +123,7 @@ class SQLighter:
             return self.cursor.execute("SELECT w_timers, r_timers, w_mins, r_mins FROM stats WHERE user_id = ?",
                                        (user_id,)).fetchone()
 
-    def update_stats(self):
-        """Обнуление статистики"""
-        with self.connection:
-            return self.cursor.execute("UPDATE stats SET w_timers = 0, r_timers = 0, w_mins = 0, r_mins = 0")
-
-    def update_one_stat(self, user_id):
+    def update_stats(self, user_id):
         """Обнуление статистики по айди"""
         with self.connection:
             return self.cursor.execute(
